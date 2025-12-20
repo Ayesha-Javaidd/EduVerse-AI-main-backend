@@ -14,6 +14,7 @@ class StudentUpdate(BaseModel):
     profileImageURL: Optional[str] = None
     contactNo: Optional[str] = None
     country: Optional[str] = None
+    tenantId: Optional[str] = None
 
     # ---- student fields ----
     status: Optional[str] = None
@@ -26,6 +27,7 @@ class StudentUpdate(BaseModel):
 class StudentResponse(BaseModel):
     id: str
     userId: str
+    tenantId: Optional[str] = None  # include in response
     user: UserResponse  # NESTED USER
     enrolledCourses: List[str] = []
     completedCourses: List[str] = []
