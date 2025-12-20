@@ -41,7 +41,7 @@ class TenantCreate(BaseModel):
 # -------------------------
 class TenantUpdate(BaseModel):
     tenantName: Optional[str] = Field(None, min_length=2, max_length=100)
-    tenantLogoUrl: Optional[HttpUrl] = None
+    tenantLogoUrl: Optional[str] = None
     status: Optional[str] = None
     subscriptionId: Optional[str] = None
 
@@ -64,7 +64,7 @@ class TenantUpdate(BaseModel):
 class TenantResponse(BaseModel):
     id: str
     tenantName: str
-    tenantLogoUrl: Optional[HttpUrl] = None
+    tenantLogoUrl: Optional[str] = None
     adminEmail: EmailStr
     status: str
     subscriptionId: Optional[str]
