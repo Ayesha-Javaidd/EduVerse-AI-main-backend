@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.roles import admins, students, super_admin, teachers
+from app.routers.dashboards import admin_dashboard
 from app.routers import (
     assignment_submissions,
     assignments,
@@ -43,6 +44,7 @@ def root():
 app.include_router(admin_auth.router)
 app.include_router(student_auth.router)
 app.include_router(teacher_auth.router)
+# app.include_router(admin_dashboard.router)
 
 app.include_router(login.router)
 
