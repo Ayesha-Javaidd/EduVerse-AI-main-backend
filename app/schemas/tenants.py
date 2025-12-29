@@ -2,25 +2,6 @@ from typing import Optional
 from datetime import datetime
 from pydantic import EmailStr, BaseModel, Field, HttpUrl, model_validator
 
-
-# -------------------------
-# Schema: Used when creating a tenant
-# -------------------------
-# class TenantCreate(BaseModel):
-#     tenantName: str = Field(
-#         ...,
-#         min_length=2,
-#         max_length=100,
-#         json_schema_extra={"example": "EduVerse School"},
-#     )
-#     tenantLogoUrl: Optional[HttpUrl] = Field(
-#         None, json_schema_extra={"example": "https://example.com/logo.png"}
-#     )
-#     adminEmail: EmailStr = Field(
-#         ..., json_schema_extra={"example": "admin@example.com"}
-#     )
-
-
 class TenantCreate(BaseModel):
     tenantName: str = Field(
         ...,
