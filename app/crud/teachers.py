@@ -45,19 +45,19 @@ def serialize_teacher(t: dict) -> dict:
     for c in t.get("assignedCourses", []):
         assigned_courses.append(str(c))
 
+def serialize_teacher(t, user):
+    tenant_id = t.get("tenantId")
+    # Convert ObjectIds in assignedCourses to strings
+    assigned_courses = [str(c) if isinstance(c, ObjectId) else c for c in t.get("assignedCourses", [])]
     return {
         "id": str(t["_id"]),
-        "fullName": t.get("fullName", ""),
-        "email": t.get("email", ""),
-        "profileImageURL": t.get("profileImageURL", ""),
+        "userId": str(t["userId"]),
+        "tenantId": str(tenant_id) if tenant_id else None,
+        "user": serialize_user(user),  # attach user
         "assignedCourses": assigned_courses,
-        "contactNo": t.get("contactNo"),
-        "country": t.get("country"),
-        "status": t.get("status", "active"),
-        "role": t.get("role", "teacher"),
-        "qualifications": qualifications,
-        "subjects": subjects,
-        "tenantId": str(t.get("tenantId", "")),
+        "qualifications": t.get("qualifications", []),
+        "subjects": t.get("subjects", []),
+        "status": t.get("status"),
         "createdAt": t.get("createdAt"),
         "updatedAt": t.get("updatedAt"),
         "lastLogin": t.get("lastLogin"),

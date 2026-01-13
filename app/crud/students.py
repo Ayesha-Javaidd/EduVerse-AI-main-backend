@@ -1,16 +1,35 @@
 from datetime import datetime
 from bson import ObjectId
 from fastapi import HTTPException
-from app.schemas.students import StudentCreate, StudentUpdate
-from app.utils.mongo import fix_object_ids
-from app.utils.security import hash_password
-from app.db.database import students_collection as COLLECTION
-from app.db.database import courses_collection, users_collection, db
-from app.db.database import student_performance_collection
+from app.db.database import db
+from app.crud.users import serialize_user
 
-# ------------------ Helper: Merge User & Student Data ------------------ #
-def merge_user_data(student_doc, user_doc):
-    if not student_doc:
+
+def serialize_student(s, user):
+    tenant_id = s.get("tenantId")
+    # Convert ObjectIds in course arrays to strings
+    enrolled_courses = [str(c) if isinstance(c, ObjectId) else c for c in s.get("enrolledCourses", [])]
+    completed_courses = [str(c) if isinstance(c, ObjectId) else c for c in s.get("completedCourses", [])]
+    return {
+        "id": str(s["_id"]),
+        "userId": str(s["userId"]),
+        "tenantId": str(tenant_id) if tenant_id else None,
+        "user": serialize_user(user),  #  attach user
+        "enrolledCourses": enrolled_courses,
+        "completedCourses": completed_courses,
+        "status": s.get("status"),
+        "createdAt": s.get("createdAt"),
+        "updatedAt": s.get("updatedAt"),
+    }
+
+
+async def get_student_by_user(user_id: str):
+    student = await db.students.find_one({"userId": ObjectId(user_id)})
+    if not student:
+        return None
+
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
         return None
     
     # Base student data

@@ -44,20 +44,29 @@ async def verify_user(email: str, password: str):
     u = await get_user_by_email(email)
     if not u or not verify_password(password, u["password"]):
         return None
-    
-    user_data = serialize_user(u)
-    
-    # Add role-specific profile ID
-    if u["role"] == "student":
-        student = await db.students.find_one({"userId": u["_id"]})
-        if student:
-            user_data["studentId"] = str(student["_id"])
-    elif u["role"] == "teacher":
-        teacher = await db.teachers.find_one({"userId": u["_id"]})
-        if teacher:
-            user_data["teacherId"] = str(teacher["_id"])
+
+    # After verifying, fetch the role-specific doc to get the tenantId
+    user_id = u["_id"]
+    role = u["role"]
+    tenant_id = None
+
+    if role == "teacher":
+        role_doc = await db.teachers.find_one({"userId": user_id})
+        if role_doc:
+            tenant_id = role_doc.get("tenantId")
+    elif role == "student":
+        role_doc = await db.students.find_one({"userId": user_id})
+        if role_doc:
+            tenant_id = role_doc.get("tenantId")
+    elif role == "admin":
+        role_doc = await db.admins.find_one({"userId": user_id})
+        if role_doc:
+            tenant_id = role_doc.get("tenantId")
             
-    return user_data
+    # Add tenantId to the user object before serializing
+    u["tenantId"] = tenant_id
+    
+    return serialize_user(u)
 
 
 async def update_last_login(user_id: str):

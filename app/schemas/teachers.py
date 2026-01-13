@@ -29,12 +29,12 @@ class TeacherUpdate(BaseModel):
 
 class TeacherResponse(BaseModel):
     id: str
-    fullName: str
-    email: str
-    profileImageURL: str
-    assignedCourses: List[str]
-    contactNo: Optional[str]
-    country: Optional[str]
+    userId: str
+    tenantId: Optional[str] = None  # include in response
+    user: UserResponse  # NESTED USER
+    assignedCourses: List[str] = []
+    qualifications: List[str] = []
+    subjects: List[str] = []
     status: str
     role: str
     createdAt: datetime
