@@ -7,7 +7,9 @@ from fastapi import HTTPException
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+
     payload = decode_token(token)
+    print(f"DEBUG: Decoded Payload: {payload}")
 
     # Allow multiple valid statuses (active for teachers/admins, studying for students)
     user = await db.users.find_one(
@@ -18,7 +20,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     )
     
     if not user:
+        print(f"DEBUG: User not found for ID: {payload['user_id']}")
         raise HTTPException(status_code=401, detail="User not found or inactive")
+    
+    print(f"DEBUG: User found: {user.get('email')}, Role: {user.get('role')}")
+
 
     # tenantId is stored in the role-specific collection (teachers, students, admins)
     # not in the users collection, so we need to fetch it based on user role

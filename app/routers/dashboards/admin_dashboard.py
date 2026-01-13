@@ -16,7 +16,7 @@ async def list_teachers(current_user=Depends(require_role(*admin_roles))):
 
 @router.get("/students")
 async def list_students(current_user=Depends(require_role(*admin_roles))):
-    students = await crud_admin.get_all_students(current_user["tenantId"])
+    students = await crud_admin.get_all_students(current_user["tenant_id"])
     return {"total": len(students), "students": students}
 
 

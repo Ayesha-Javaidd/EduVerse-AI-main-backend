@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status, Depends
 from bson import ObjectId
 from typing import Optional
 
@@ -8,13 +8,30 @@ from app.crud.quizzes import (
     get_quiz,
     get_quizzes_filtered,
     update_quiz,
-    delete_quiz
+    delete_quiz,
+    get_student_quizzes
 )
+from app.auth.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/quizzes",
     tags=["Quizzes"]
 )
+
+# ------------------ STUDENT SPECIFIC ------------------
+@router.get("/student/me", response_model=list[QuizResponse])
+async def get_my_quizzes(current_user=Depends(get_current_user)):
+    """
+    Fetch quizzes ONLY for courses the student is enrolled in.
+    """
+    if current_user["role"] != "student":
+        raise HTTPException(status_code=403, detail="Only students can access this endpoint")
+        
+    return await get_student_quizzes(
+        user_id=current_user["user_id"],
+        tenant_id=current_user["tenant_id"]
+    )
+
 
 # ------------------ VALIDATION ------------------
 def _validate_objectid(_id: str):
