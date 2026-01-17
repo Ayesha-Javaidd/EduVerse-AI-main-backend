@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
 
+
 class TeacherCreate(BaseModel):
     fullName: str
     email: EmailStr
@@ -16,6 +17,7 @@ class TeacherCreate(BaseModel):
     subjects: List[str] = []
     tenantId: str
 
+
 class TeacherUpdate(BaseModel):
     fullName: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -27,14 +29,15 @@ class TeacherUpdate(BaseModel):
     qualifications: Optional[List[str]] = None
     subjects: Optional[List[str]] = None
 
+
 class TeacherResponse(BaseModel):
     id: str
-    userId: str
-    tenantId: Optional[str] = None  # include in response
-    user: UserResponse  # NESTED USER
-    assignedCourses: List[str] = []
-    qualifications: List[str] = []
-    subjects: List[str] = []
+    fullName: str
+    email: str
+    profileImageURL: str
+    assignedCourses: List[str]
+    contactNo: Optional[str]
+    country: Optional[str]
     status: str
     role: str
     createdAt: datetime
@@ -45,6 +48,7 @@ class TeacherResponse(BaseModel):
     tenantId: str
 
     model_config = {"from_attributes": True}
+
 
 class ChangePassword(BaseModel):
     oldPassword: str
