@@ -18,6 +18,7 @@ router = APIRouter(
 
 # PROFILE (ME)
 
+
 @router.get("/me", response_model=StudentResponse)
 async def me(current_user=Depends(get_current_user)):
     return await crud_student.get_student_me(current_user)

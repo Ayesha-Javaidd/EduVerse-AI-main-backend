@@ -298,20 +298,10 @@ async def update_admin_me(current_user: dict, data: AdminUpdateProfile):
 
 
 async def change_admin_me_password(
-    current_user: dict, old_password: str, new_password: str
+    current_user: dict,
+    old_password: str,
+    new_password: str,
 ):
-    """
-    Change the password for the currently authenticated admin.
-
-    Args:
-        current_user (dict): The current user info from token, must contain 'user_id'.
-        old_password (str): Current password provided by user.
-        new_password (str): New password to set.
-
-    Returns:
-        dict: Success message with updatedAt timestamp.
-    """
-
     # 1. Fetch admin profile
     admin = await db.admins.find_one({"userId": ObjectId(current_user["user_id"])})
     if not admin:
@@ -321,30 +311,37 @@ async def change_admin_me_password(
     if not user_id:
         not_found("Associated user")
 
-    # 2. Fetch user document
+    # 2. Fetch user document (SOURCE OF TRUTH for password)
     user = await db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         not_found("User")
 
-    # 3. Verify old password
-    if not verify_password(old_password, user.get("password", "")):
-        forbidden("Old password is incorrect")
+    # 3. Verify old password (same logic as login)
+    if not verify_password(old_password, user["password"]):
+        bad_request("Old password is incorrect")
 
-    # 4. Hash new password
-    hashed_new = hash_password(new_password)
+    # 4. Prevent reusing the same password
+    if verify_password(new_password, user["password"]):
+        bad_request("New password must be different from old password")
 
-    # 5. Update password in users collection
-    update_result = await db.users.update_one(
+    # 5. Update password
+    await db.users.update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": {"password": hashed_new, "updatedAt": datetime.utcnow()}},
+        {
+            "$set": {
+                "password": hash_password(new_password),
+                "updatedAt": datetime.utcnow(),
+            }
+        },
     )
 
-    if update_result.modified_count == 0:
-        bad_request("Failed to update password")
-
-    # 6. Update timestamp in admins collection
+    # 6. Touch admin profile timestamp
     await db.admins.update_one(
-        {"_id": ObjectId(admin["_id"])}, {"$set": {"updatedAt": datetime.utcnow()}}
+        {"_id": admin["_id"]},
+        {"$set": {"updatedAt": datetime.utcnow()}},
     )
 
-    return {"message": "Password updated successfully", "updatedAt": datetime.utcnow()}
+    return {
+        "message": "Password updated successfully",
+        "updatedAt": datetime.utcnow(),
+    }

@@ -21,15 +21,22 @@ def merge_user_data(student_doc, user_doc):
         # Merge fields from User
         merged["fullName"] = user_doc.get("fullName", "")
         merged["email"] = user_doc.get("email", "")
-        merged["password"] = user_doc.get(
-            "password"
-        )  # Required for login check in router
+        merged["password"] = user_doc.get("password")
         merged["role"] = user_doc.get("role", "student")
         merged["status"] = user_doc.get("status", "active")
         merged["createdAt"] = user_doc.get("createdAt")
+        merged["updatedAt"] = user_doc.get("updatedAt")
+        merged["lastLogin"] = user_doc.get("lastLogin")
         merged["profileImageURL"] = user_doc.get("profileImageURL", "")
 
-    return fix_object_ids(merged)
+    merged = fix_object_ids(merged)
+
+    # Convert MongoDB _id → id
+    if "_id" in merged:
+        merged["id"] = str(merged["_id"])
+        del merged["_id"]
+
+    return merged
 
 
 # ---------------------------------------------------------------------------
@@ -358,28 +365,35 @@ async def update_student(student_id: str, tenantId: str, update: StudentUpdate):
 
 
 async def change_student_me_password(
-    current_user: dict, old_password: str, new_password: str
+    current_user: dict,
+    old_password: str,
+    new_password: str,
 ):
-
-    # 1. Fetch student/user document
+    # 1. Fetch user document (students use users directly)
     user = await users_collection.find_one({"_id": ObjectId(current_user["user_id"])})
     if not user:
         not_found("User")
 
-    # 2. Verify old password
-    if not verify_password(old_password, user.get("password", "")):
+    # 2. Verify old password (same logic as login)
+    if not verify_password(old_password, user["password"]):
         bad_request("Old password is incorrect")
 
-    # 3. Hash new password
-    hashed_new = hash_password(new_password)
+    # 3. Prevent password reuse
+    if verify_password(new_password, user["password"]):
+        bad_request("New password must be different from old password")
 
-    # 4. Update password in users collection
-    update_result = await users_collection.update_one(
+    # 4. Update password
+    await users_collection.update_one(
         {"_id": user["_id"]},
-        {"$set": {"password": hashed_new, "updatedAt": datetime.utcnow()}},
+        {
+            "$set": {
+                "password": hash_password(new_password),
+                "updatedAt": datetime.utcnow(),
+            }
+        },
     )
 
-    if update_result.modified_count == 0:
-        bad_request("Failed to update password")
-
-    return {"message": "Password updated successfully", "updatedAt": datetime.utcnow()}
+    return {
+        "message": "Password updated successfully",
+        "updatedAt": datetime.utcnow(),
+    }

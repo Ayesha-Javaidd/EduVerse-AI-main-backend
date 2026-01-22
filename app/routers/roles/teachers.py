@@ -118,22 +118,22 @@ async def get_all_teachers_route():
     return await get_all_teachers()
 
 
-@router.get("/{id}", response_model=TeacherResponse)
-async def get_teacher_route(id: str):
-    validate_object_id(id)
-    t = await get_teacher(id)
-    if not t:
-        raise HTTPException(404, "Teacher not found")
-    return t
+# @router.get("/{id}", response_model=TeacherResponse)
+# async def get_teacher_route(id: str):
+#     validate_object_id(id)
+#     t = await get_teacher(id)
+#     if not t:
+#         raise HTTPException(404, "Teacher not found")
+#     return t
 
 
-@router.put("/{id}", response_model=TeacherResponse)
-async def update_teacher_route(id: str, updates: TeacherUpdate):
-    validate_object_id(id)
-    updated = await update_teacher(id, updates.dict(exclude_unset=True))
-    if not updated:
-        raise HTTPException(404, "Teacher not found")
-    return updated
+# @router.put("/{id}", response_model=TeacherResponse)
+# async def update_teacher_route(id: str, updates: TeacherUpdate):
+#     validate_object_id(id)
+#     updated = await update_teacher(id, updates.dict(exclude_unset=True))
+#     if not updated:
+#         raise HTTPException(404, "Teacher not found")
+#     return updated
 
 
 # @router.put("/{id}/password")

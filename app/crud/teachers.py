@@ -466,9 +466,10 @@ async def update_teacher_me(current_user: dict, data: TeacherUpdate):
 
 
 async def change_teacher_me_password(
-    current_user: dict, old_password: str, new_password: str
+    current_user: dict,
+    old_password: str,
+    new_password: str,
 ):
-
     # 1. Fetch teacher profile
     teacher = await db.teachers.find_one({"userId": ObjectId(current_user["user_id"])})
     if not teacher:
@@ -478,30 +479,37 @@ async def change_teacher_me_password(
     if not user_id:
         not_found("Associated user for teacher")
 
-    # 2. Fetch user document
+    # 2. Fetch user document (SOURCE OF TRUTH)
     user = await users_collection.find_one({"_id": ObjectId(user_id)})
     if not user:
         not_found("User")
 
     # 3. Verify old password
-    if not verify_password(old_password, user.get("password", "")):
+    if not verify_password(old_password, user["password"]):
         bad_request("Old password is incorrect")
 
-    # 4. Hash new password
-    hashed_new = hash_password(new_password)
+    # 4. Prevent password reuse
+    if verify_password(new_password, user["password"]):
+        bad_request("New password must be different from old password")
 
     # 5. Update password in users collection
-    update_result = await users_collection.update_one(
+    await users_collection.update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": {"password": hashed_new, "updatedAt": datetime.utcnow()}},
+        {
+            "$set": {
+                "password": hash_password(new_password),
+                "updatedAt": datetime.utcnow(),
+            }
+        },
     )
 
-    if update_result.modified_count == 0:
-        bad_request("Failed to update password")
-
-    # 6. Update timestamp in teachers collection
+    # 6. Touch teacher profile timestamp
     await db.teachers.update_one(
-        {"_id": ObjectId(teacher["_id"])}, {"$set": {"updatedAt": datetime.utcnow()}}
+        {"_id": teacher["_id"]},
+        {"$set": {"updatedAt": datetime.utcnow()}},
     )
 
-    return {"message": "Password updated successfully", "updatedAt": datetime.utcnow()}
+    return {
+        "message": "Password updated successfully",
+        "updatedAt": datetime.utcnow(),
+    }
