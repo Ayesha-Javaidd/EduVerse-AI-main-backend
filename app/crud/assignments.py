@@ -41,7 +41,7 @@ async def serialize_assignment(a: dict) -> dict:
     return {
         "id": str(a["_id"]),
         "courseId": str(a["courseId"]),
-        "courseName": course_name,  # for display purposes
+        "courseName": course_name,
         "teacherId": str(a["teacherId"]),
         "tenantId": str(a["tenantId"]),
         "title": a["title"],
