@@ -31,8 +31,8 @@ def get_cors_origins() -> list[str]:
         "http://127.0.0.1:8000",
         "http://localhost:8001",
         "http://127.0.0.1:8001",
-        "https://https://eduverse-ai-app.vercel.app/",
-        "https://https://eduverse-okmrmw2fq-ayesha-javaids-projects.vercel.app/",
+        "https://eduverse-ai-app.vercel.app/",
+        "https://eduverse-okmrmw2fq-ayesha-javaids-projects.vercel.app/",
         "https://eduverse-ai-git-main-ayesha-javaids-projects.vercel.app",
     ]
 
