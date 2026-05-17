@@ -1,139 +1,90 @@
-# EduVerse Backend
+# EduVerse AI: The Future of Adaptive Learning
 
-FastAPI backend for the EduVerse multi-tenant e-learning platform.
+**An AI-Powered Multi-Tenant Learning Management System (LMS)**
 
-## Stack
+EduVerse AI is an innovative AI powered multi tenant educational platform that uses Large Language Models and Retrieval Augmented Generation to create personalized learning experiences for students. The system dynamically adjusts educational content, quiz difficulty, and learning recommendations based on student performance and interaction.
 
-- FastAPI
-- MongoDB
-- Motor
-- Stripe
-- Pydantic
-- `uv` for environment and dependency management
+---
 
-## Current Business Model
+## Key Features
 
-- Admins and teachers remain tenant-bound.
-- Students are global users.
-- A student can enroll in courses across tenants.
-- Tenant context for student actions is derived from the target resource, such as course, payment, progress, or submission, instead of direct student ownership by a tenant.
+- **Adaptive AI Lessons:** Dynamically generates lessons based on student learning pace (Slow, Average, Fast).
+- **Dynamic Quiz Generation:** Automatically creates MCQs from course content using Llama 3.2, Phi 3.5 and Qwen 2.5.
+- **AI-Tutor Chat:** A 24/7 RAG-powered (Retrieval-Augmented Generation) assistant for student queries.
+- **Gamification:** Global leaderboard and XP points to boost engagement.
+- **Premium Subscriptions:** Fully integrated with Stripe for secure multi-tenant billing.
+- **Multi-Tenant Architecture:** Scalable support for multiple organizations/schools on one platform.
 
-## Setup
+---
 
-Install `uv` if needed:
+## Tech Stack
 
-```bash
-pip install uv
+| Layer        | Technology                                  |
+| :----------- | :------------------------------------------ |
+| **Frontend** | Angular 19, RxJS, Tailwind CSS              |
+| **Backend**  | FastAPI (Python), Uvicorn, Pydantic         |
+| **Database** | MongoDB Atlas (NoSQL), ChromaDB (Vector DB) |
+| **AI/LLM**   | Ollama (Local Llama 3.2 / Phi 3.5/Qwen 2.5) |
+| **Payments** | Stripe API                                  |
+
+---
+
+## Project Structure
+
+```text
+FYP/
+├── EduVerse-AI/                # Frontend (Angular 19)
+└── EduVerse-AI-main-backend/   # Backend (FastAPI)
 ```
 
-Create and activate the virtual environment:
+---
+
+## Installation & Setup
+
+### 1. Prerequisites
+
+- Python 3.11+
+- Node.js v18+
+- Ollama (running locally with `llama3.2`,`phi3.5` and `qwen2.5` models pulled)
+
+### 2. Backend Setup
 
 ```bash
-uv venv .venv
-source .venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
-uv sync
-```
-
-## Run
-
-Start the API locally:
-
-```bash
+cd EduVerse-AI-main-backend
+python -m venv venv
+.\venv\Scripts\activate  # On Linux use: source venv/bin/activate
+pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Default local API URL:
-
-```text
-http://localhost:8000
-```
-
-## Important Configuration
-
-Shared backend deployment/product constants are centralized in:
-
-- [app/core/settings.py](./app/core/settings.py)
-
-Important values include:
-
-- `FRONTEND_URL`
-- `CORS_ORIGINS`
-- `STRIPE_BRAND_BUTTON_COLOR`
-- `MAX_SUBSCRIPTION_PLANS`
-- `TENANT_ID`
-
-Update environment variables or `settings.py`-backed config instead of duplicating values inside routers/services.
-
-## Main Domains
-
-- Auth and RBAC
-- Courses and enrollment
-- Student progress
-- AI/adaptive learning
-- Quiz generation and submissions
-- Student performance and leaderboard
-- Payments and billing
-- Tenant/admin/super-admin operations
-
-## Verification
-
-Compile-check backend modules:
+### 3. Frontend Setup
 
 ```bash
-PYTHONPYCACHEPREFIX=/tmp/pycache python3 -m compileall app scripts
+cd EduVerse-AI
+npm install
+ng serve -o
 ```
 
-Run tests:
+### 4. Stripe Webhook (Optional for testing payments)
 
 ```bash
-pytest -q
+stripe listen --forward-to localhost:8000/payments/webhook
 ```
 
-If dev extras are needed:
+---
 
-```bash
-uv sync --extra dev
-```
+## Environment Variables
 
-## Database / Integrity Utilities
+Create a `.env` file in the backend directory and configure:
 
-Consistency audit:
+MONGODB_URL=
+GEMINI_API_KEY=
+JWT_SECRET=
+STRIPE_SECRET_KEY=
+CHROMA_DB_PATH=
 
-```bash
-python -m scripts.check_db_consistency
-```
+## Development Notes
 
-Repair helper:
-
-```bash
-python -m scripts.repair_db_consistency
-```
-
-Global-student cleanup helper:
-
-```bash
-python -m scripts.cleanup_global_student_model
-```
-
-Subscription-plan normalization helper:
-
-```bash
-python -m scripts.normalize_default_subscription_plan_limits
-```
-
-## Security Notes
-
-- Student identity for protected student actions is derived server-side from the authenticated session.
-- Admin and teacher mutations remain tenant-scoped.
-- Quiz submissions and course access should rely on ownership/resource checks rather than trusting client-provided IDs.
-
-## Notes
-
-- Run commands from the `backend/` directory so imports resolve correctly.
-- `app/main.py` registers startup index creation through the database bootstrap path.
-- Stripe return URLs and branding are centralized so billing/checkout changes do not require router-by-router edits.
+- Developed for the Final Year Project (FYP) 2024-2026.
+- UI built with a focus on modern aesthetics and accessibility.
+- Backend uses asynchronous processing for high-concurrency LLM calls.
